@@ -1,6 +1,8 @@
 # Blogtopia
 
 A simple PHP & MySQL blogging platform with a custom routing system.
+<img width="1661" height="743" alt="image" src="https://github.com/user-attachments/assets/a40d3b41-390a-4c98-b7bd-3edf543eb8dc" />
+
 
 ## Overview
 
