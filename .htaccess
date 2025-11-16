@@ -1,0 +1,27 @@
+# Enable Rewrite Engine
+RewriteEngine On
+
+# Set Base Directory (adjust if your app is in a subdirectory)
+RewriteBase /
+
+# Don't rewrite files that exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Don't rewrite directories
+RewriteCond %{REQUEST_FILENAME} !-l
+
+# Route all requests to index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Security: Prevent access to sensitive files
+<FilesMatch "^(\.htaccess|\.git|composer\.(json|lock)|package\.json|\.env)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevent directory listing
+Options -Indexes
+
+# Set default charset
+AddDefaultCharset UTF-8
