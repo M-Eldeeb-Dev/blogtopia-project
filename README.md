@@ -1,137 +1,118 @@
-# Routing System Documentation
+# Blogtopia
 
-This project uses a custom routing system based on the directory structure.
+A simple PHP & MySQL blogging platform with a custom routing system.
 
-## Directory Structure
+## Overview
+
+Blogtopia is a lightweight blog application built with vanilla PHP (no frameworks) and MySQL.
+It features both public user-facing routes and an admin panel for managing posts, categories, comments and users.
+
+Technologies used:
+
+* PHP
+* MySQL
+* CSS (basic styling)
+* Apache with mod_rewrite (for clean URLs)
+
+## Features
+
+### Public (User) Site
+
+* View all blog posts on home page (`/`, `/home`, or `/blog`)
+* View individual posts via `/post/{id}`
+* View posts by category
+* User registration & login
+* Logout
+* Clean, readable URLs
+
+### Admin Panel
+
+* Dashboard (`/admin` or `/admin/dashboard`)
+* Manage posts: list, add (`/admin/addpost`), edit (`/admin/editpost/{id}`)
+* Manage categories (`/admin/categories`)
+* Manage comments (`/admin/comments`)
+* Manage users (`/admin/users`)
+* Authentication & role-based access control (admin vs regular user)
+
+## Project Structure
 
 ```
-├── Admin/          # Admin panel routes
-│   ├── Actions/    # Admin action handlers
-│   └── ...
-├── Auth/           # Authentication routes
-├── User/           # User/public routes
-│   ├── Actions/    # User action handlers
-│   └── ...
-└── Config/         # Configuration files
-    └── router.php  # Router implementation
+├── Admin/          # Admin panel routes  
+│   ├── Actions/    # Admin action handlers  
+│   └── …  
+├── Auth/           # Authentication routes  
+├── User/           # User/public site routes  
+│   ├── Actions/    # User action handlers  
+│   └── …  
+└── Config/         # Configuration files  
+    └── router.php  # Custom router implementation  
 ```
 
-## How It Works
+## Routing System
 
-The routing system is initialized in `index.php` and uses `Config/router.php` to handle all incoming requests.
+All incoming HTTP requests are routed through `index.php`, which delegates routing logic to `Config/router.php`.
+The system supports:
 
-### URL Structure
+* URI patterns with parameters (e.g., `/post/{id}`)
+* Middleware protections:
 
-- **Home/Blog**: `/` or `/home` or `/blog`
-- **Post View**: `/post/{id}` (e.g., `/post/1`)
-- **Login**: `/login`
-- **Register**: `/register`
-- **Logout**: `/logout`
-- **Admin Dashboard**: `/admin` or `/admin/dashboard`
-- **Admin Posts**: `/admin/posts`
-- **Admin Add Post**: `/admin/addpost`
-- **Admin Edit Post**: `/admin/editpost`
-- **Admin Categories**: `/admin/categories`
-- **Admin Comments**: `/admin/comments`
-- **Admin Users**: `/admin/users`
+  * `auth`: requires user to be logged in
+  * `admin`: requires an admin role
+  * `guest`: requires no user logged in
+* Helper functions for URLs and redirects (via `Config/url_helper.php`)
 
-### Middleware
+  ```php
+  echo url('admin/posts');       // → /admin/posts  
+  echo postUrl(1);               // → /post/1  
+  redirect('post/5', ['action'=>'view']);  
+  ```
 
-Routes can be protected with middleware:
+### Enabling clean URLs
 
-- `auth`: Requires user to be authenticated
-- `admin`: Requires user to be admin
-- `guest`: Requires user to NOT be authenticated
-
-### Using URL Helper Functions
-
-Include the URL helper in your files:
-
-```php
-require_once __DIR__ . '/../Config/url_helper.php';
-```
-
-Then use helper functions:
-
-```php
-// Generate URLs
-echo url('admin/posts');                    // /admin/posts
-echo postUrl(1);                            // /post/1
-echo adminUrl('categories');                // /admin/categories
-echo loginUrl();                            // /login
-
-// Redirect
-redirect('admin/dashboard');
-redirect('post/5', ['action' => 'view']);
-
-// Assets
-echo asset('User/assets/css/user.css');     // /User/assets/css/user.css
-echo asset('public/blog.svg');              // /public/blog.svg
-```
-
-### Adding New Routes
-
-Edit `Config/router.php` to add new routes:
-
-```php
-// Add a new route
-$router->addRoute('GET', '/new-route', 'User/newpage.php', ['auth']);
-$router->addRoute('POST', '/new-route', 'User/newpage.php', ['auth']);
-
-// Parameterized route
-$router->addRoute('GET', '/category/{id}', 'User/category.php');
-```
-
-### Route Parameters
-
-Route parameters are automatically extracted and available:
-
-- As `$_GET` parameters (for backward compatibility)
-- As variables in the handler file
-
-Example:
-- Route: `/post/{id}`
-- URL: `/post/123`
-- In handler: `$id` is available, and `$_GET['id']` is set to `123`
-
-## Configuration
-
-### .htaccess
-
-The `.htaccess` file enables clean URLs by rewriting all requests to `index.php`. Make sure mod_rewrite is enabled on your server.
-
-### Base Path
-
-If your application is in a subdirectory, update the base path in `Config/router.php`:
+Make sure your Apache server has `mod_rewrite` enabled. The `.htaccess` file in the project root rewrites all requests to `index.php`.
+If you deploy in a sub-directory, update the base path in `Config/router.php`, e.g.:
 
 ```php
 $router = new Router('/subdirectory');
 ```
 
-## Examples
+## Installation / Setup
 
-### Creating a Link
+1. Clone this repo:
 
-```php
-<a href="<?= postUrl($post['id']); ?>">Read More</a>
-<a href="<?= adminUrl('addpost'); ?>">Add New Post</a>
-```
+   ```bash
+   git clone https://github.com/M-Eldeeb-Dev/blogtopia-project.git
+   ```
+2. Create a MySQL database (e.g., `blogtopia_db`)
+3. Import `blog.sql` to define the tables and seed initial data
+4. Configure your database connection settings in `Config/…` (you’ll need to locate the DB config file)
+5. Ensure your web server’s document root points to the project root and has mod_rewrite enabled
+6. Adjust file permissions for uploads directory, if needed (e.g., `Uploads/`)
+7. Visit `http://your-server/` in your browser to verify
 
-### Redirecting After Action
+## Usage
 
-```php
-// In an action file
-require_once __DIR__ . '/../../Config/url_helper.php';
-redirect('admin/posts');
-```
+* Browse the blog posts via the home page
+* Register a user account or login
+* As an admin user, go to `/admin` to manage posts, categories, comments and users
+* Add new posts, edit existing ones, moderate comments or manage site users
 
-### Checking Current Path
+## Contributing
 
-```php
-require_once __DIR__ . '/../Config/url_helper.php';
+Feel free to fork the project and submit pull requests.
+Suggested improvements:
 
-if (isCurrentPath('admin')) {
-    echo 'You are on the admin page';
-}
-```
+* Add pagination for post lists
+* Add image uploads per post
+* Implement WYSIWYG editor for post content
+* Add an API layer (REST or GraphQL)
+* Improve styling/theme responsiveness
 
+## License
+
+This project is open source and provided under the MIT License. See the `LICENSE` file for full details.
+
+## Acknowledgements
+
+Thanks to all open-source contributors whose work inspired this project.
+If you use this code or adapt it, a mention or link back is appreciated.
